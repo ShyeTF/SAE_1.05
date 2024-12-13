@@ -1,0 +1,13 @@
+import csv
+
+def convertir_ics_en_csv(fichier_ics, fichier_csv):
+    evenement = {}
+    with open(fichier_ics, 'r', encoding='utf-8') as fichier:
+        lignes = fichier.readlines()
+
+        for ligne in lignes:
+            ligne = ligne.strip()
+            if ligne.startswith("BEGIN:VEVENT"):
+                evenement = {}
+            elif ligne.startswith("END:VEVENT"):
+                
