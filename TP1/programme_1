@@ -5,11 +5,31 @@ def convertir_ics_en_csv(fichier_ics, fichier_csv):
     with open(fichier_ics, 'r', encoding='utf-8') as fichier:
         lignes = fichier.readlines()
 
-        for ligne in lignes:
-            ligne = ligne.strip()
-            if ligne.startswith("BEGIN:VEVENT"):
-                evenement = {}
-            elif ligne.startswith("END:VEVENT"):
-                with open(fichier_csv, 'a', encoding='utf-8', newline='') as csvfile:
-                    writer = csv.writer(csvfile)
+    for ligne in lignes:
+        ligne = ligne.strip()
+        if ligne.startswith("BEGIN:VEVENT"):
+            evenement = {}
+        elif ligne.startswith("END:VEVENT"):
+            with open(fichier_csv, 'a', encoding='utf-8', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([
+                    evenement.get("DTSTART", ""),
+                    evenement.get("DTEND", ""),
+                    evenement.get("SUMMARY", ""),
+                    evenement.get("LOCATION", ""),
+                    evenement.get("DESCRIPTION", "")
+                ])
+        elif ":" in ligne:
+            cle, valeur = ligne.split(":", 1)
+            evenement[cle] = valeur
+
+fichier_ics = "evenementSAE_15.ics"
+fichier_csv = "evenementSAE_15.csv"
+
+with open(fichier_csv, 'w', encoding='utf-8', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["Date de début", "Date de fin", "Résumé", "Lieu", "Description"])
+
+convertir_ics_en_csv(fichier_ics, fichier_csv)
+                    
                     
