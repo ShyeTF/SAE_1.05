@@ -10,4 +10,6 @@ def convertir_ics_en_csv(fichier_ics, fichier_csv):
             if ligne.startswith("BEGIN:VEVENT"):
                 evenement = {}
             elif ligne.startswith("END:VEVENT"):
-                
+                with open(fichier_csv, 'a', encoding='utf-8', newline='') as csvfile:
+                    writer = csv.writer(csvfile)
+                    
