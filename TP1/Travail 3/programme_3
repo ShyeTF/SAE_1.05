@@ -1,0 +1,61 @@
+from datetime import datetime
+
+def parse_ics_event(event):
+    """
+    Extrait les données nécessaires d'un événement ics.
+    """
+    lines = event.strip().split('\n')
+    data = {}
+    for line in lines:
+        if line.startswith("DTSTART"):
+            data['DTSTART'] = line.split(":")[1].strip()
+        elif line.startswith("DTEND"):
+            data['DTEND'] = line.split(":")[1].strip()
+        elif line.startswith("SUMMARY"):
+            data['SUMMARY'] = line.split(":")[1].strip()
+        elif line.startswith("DESCRIPTION"):
+            data['DESCRIPTION'] = line.split(":")[1].strip()
+    return data
+
+def filter_events(events, resource="R1.07", group="B2"):
+    """
+    Filtre les événements contenant la ressource et le groupe.
+    """
+    filtered = []
+    for event in events:
+        if resource in event['SUMMARY'] and group in event['DESCRIPTION']:
+            start = datetime.strptime(event['DTSTART'], "%Y%m%dT%H%M%SZ")
+            end = datetime.strptime(event['DTEND'], "%Y%m%dT%H%M%SZ")
+            duration = end - start
+            filtered.append({
+                "Date": start.strftime("%d-%m-%Y"),
+                "Durée": f"{duration.seconds // 3600:02}:{(duration.seconds % 3600) // 60:02}",
+                "Type": "TP" if "TP" in event['SUMMARY'] else "CM" if "CM" in event['SUMMARY'] else "TD"
+            })
+    return filtered
+
+def read_ics_file(file_path):
+    """
+    Lit un fichier .ics et extrait les événements.
+    """
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    events = content.split("BEGIN:VEVENT")[1:]
+    return [parse_ics_event("BEGIN:VEVENT" + event) for event in events]
+
+# Chemin vers le fichier .ics
+ics_file = ics_file = "/Users/leoponthieux/Cours UJM/SAE 1.05 Traiter les données/Code/Depôt_Github/SAE_1.05/TP1/Travail 3/ADE_RT1_Septembre2023_Decembre2023.ics"
+events = read_ics_file(ics_file)
+filtered_events = filter_events(events, resource="R1.07", group="B2")
+
+# Affichage des résultats
+print("Séances de la ressource R1.07 pour le groupe B2 :")
+for event in filtered_events:
+    print(event)
+
+# Sauvegarde des résultats dans un fichier CSV
+import csv
+with open("seances_r1.07_b2.csv", "w", newline='', encoding="utf-8") as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=["Date", "Durée", "Type"])
+    writer.writeheader()
+    writer.writerows(filtered_events)
