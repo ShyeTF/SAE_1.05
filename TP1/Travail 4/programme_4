@@ -1,4 +1,6 @@
 from datetime import datetime
+import matplotlib.pyplot as plt
+from collections import Counter
 
 def parse_ics_event(event):
     """
@@ -30,7 +32,8 @@ def filter_events(events, resource="R1.07", group="B2"):
             filtered.append({
                 "Date": start.strftime("%d-%m-%Y"),
                 "Durée": f"{duration.seconds // 3600:02}:{(duration.seconds % 3600) // 60:02}",
-                "Type": "TP" if "TP" in event['SUMMARY'] else "CM" if "CM" in event['SUMMARY'] else "TD"
+                "Type": "TP" if "TP" in event['SUMMARY'] else "CM" if "CM" in event['SUMMARY'] else "TD",
+                "Month": start.strftime("%B")  # Nom du mois
             })
     return filtered
 
@@ -43,19 +46,35 @@ def read_ics_file(file_path):
     events = content.split("BEGIN:VEVENT")[1:]
     return [parse_ics_event("BEGIN:VEVENT" + event) for event in events]
 
+def afficher_graphique_par_mois(events):
+    """
+    Affiche un graphique du nombre de séances par mois.
+    """
+    # Compter le nombre de séances par mois
+    counts = Counter(event["Month"] for event in events)
+    
+    # Mois en ordre chronologique
+    mois_ordre = ['September', 'October', 'November', 'December']
+    labels = [mois for mois in mois_ordre if mois in counts]
+    values = [counts[mois] for mois in labels]
 
-ics_file = ics_file = "/Users/leoponthieux/Cours UJM/SAE 1.05 Traiter les données/Code/Depôt_Github/SAE_1.05/TP1/Travail 3/ADE_RT1_Septembre2023_Decembre2023.ics"
+    # Création du graphique
+    plt.figure(figsize=(10, 6))
+    plt.bar(labels, values, color='skyblue')
+    plt.title("Nombre de séances par mois")
+    plt.xlabel("Mois")
+    plt.ylabel("Nombre de séances")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
+    # Sauvegarder le graphique avant de l'afficher
+    plt.savefig('graphique.png')
+    plt.show()
+
+# Programme principal
+ics_file = "/Users/leoponthieux/Cours UJM/SAE 1.05 Traiter les données/Code/Depôt_Github/SAE_1.05/TP1/Travail 3/ADE_RT1_Septembre2023_Decembre2023.ics"
 events = read_ics_file(ics_file)
 filtered_events = filter_events(events, resource="R1.07", group="B2")
 
-
-print("Séances de la ressource R1.07 pour le groupe B2 :")
-for event in filtered_events:
-    print(event)
-
-
-import csv
-with open("seances_r1.07_b2.csv", "w", newline='', encoding="utf-8") as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=["Date", "Durée", "Type"])
-    writer.writeheader()
-    writer.writerows(filtered_events)
+# Afficher un graphique des résultats par mois
+afficher_graphique_par_mois(filtered_events)
